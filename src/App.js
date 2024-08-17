@@ -13,15 +13,6 @@ import WeatherBtn from './component/WeatherBtn';
 function App() {
   const APIkey = '8e113361b514112ac907a7df54dafd6e';
   const [weather, setWeather] = useState(null);
-  const getCurrentLocation = () => {
-    console.log('getCurrentLocation');
-    navigator.geolocation.getCurrentPosition((position) => {
-      let latitude = position.coords.latitude;
-      let longitude = position.coords.longitude;
-      console.log(latitude, longitude);
-      getWeatherByCurrentLocation(latitude, longitude);
-    });
-  };
   const getWeatherByCurrentLocation = async (lat, lon) => {
     const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}&units=metric`;
     const response = await fetch(url);
@@ -29,8 +20,18 @@ function App() {
     setWeather(data);
   };
   useEffect(() => {
+    const getCurrentLocation = () => {
+      console.log('getCurrentLocation');
+      navigator.geolocation.getCurrentPosition((position) => {
+        let latitude = position.coords.latitude;
+        let longitude = position.coords.longitude;
+        console.log(latitude, longitude);
+        getWeatherByCurrentLocation(latitude, longitude);
+      });
+    };
     getCurrentLocation();
     console.log('useEffect');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div id="wrap" className="w-dvw h-dvh pt-20">
