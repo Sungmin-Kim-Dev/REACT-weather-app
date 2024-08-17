@@ -23,16 +23,18 @@ function App() {
     });
   };
   const getWeatherByCurrentLocation = async (lat, lon) => {
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}`;
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}&units=metric`;
     const response = await fetch(url);
     const data = await response.json();
     setWeather(data);
   };
   useEffect(() => {
     getCurrentLocation();
-  });
+    console.log('useEffect');
+  }, []);
   return (
     <div id="wrap" className="w-dvw h-dvh pt-20">
+      {console.log('render')}
       <div className="container w-fit mx-auto p-8 rounded-2xl bg-slate-200/60 flex items-center flex-col gap-4 drop-shadow-2xl">
         <WeatherBox weather={weather}></WeatherBox>
         <div className="btn-box flex gap-4">
