@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
+import ClipLoader from 'react-spinners/ClipLoader';
 import './App.css';
 import WeatherBox from './component/WeatherBox';
 import WeatherBtn from './component/WeatherBtn';
@@ -12,39 +13,70 @@ import WeatherBtn from './component/WeatherBtn';
 // 6. 로딩 스피너 표시
 function App() {
   const APIkey = '8e113361b514112ac907a7df54dafd6e';
+  // let latitude = 0;
+  // let longitude = 0;
   const [weather, setWeather] = useState(null);
-  const getWeatherByCurrentLocation = async (lat, lon) => {
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}&units=metric`;
-    const response = await fetch(url);
-    const data = await response.json();
-    setWeather(data);
-  };
-  useEffect(() => {
-    const getCurrentLocation = () => {
-      console.log('getCurrentLocation');
-      navigator.geolocation.getCurrentPosition((position) => {
-        let latitude = position.coords.latitude;
-        let longitude = position.coords.longitude;
-        console.log(latitude, longitude);
-        getWeatherByCurrentLocation(latitude, longitude);
-      });
-    };
-    getCurrentLocation();
-    console.log('useEffect');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const [city, setCity] = useState('');
+  const [loading, setLoading] = useState(false);
+  const cities = ['seoul', 'tokyo', 'bangkok', 'taipei', 'new york', 'buenos aires', 'paris', 'vancouver', 'london'];
+
+  const getCurrentLocation = useCallback(() => {
+    // console.log('getCurrentLocation');
+    navigator.geolocation.getCurrentPosition((position) => {
+      let latitude = position.coords.latitude;
+      let longitude = position.coords.longitude;
+      // console.log(latitude, longitude);
+      getWeatherByCurrentLocation(latitude, longitude);
+    });
   }, []);
+  const getWeatherByCurrentLocation = async (lat, lon) => {
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}&units=metric`;
+      setLoading(true);
+      const response = await fetch(url);
+      const data = await response.json();
+      if (response.status === 200) {
+        setWeather(data);
+        setLoading(false);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.log('error:', error);
+    }
+  };
+  const getWeatherByCity = useCallback(async () => {
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIkey}&units=metric`;
+      setLoading(true);
+      const response = await fetch(url);
+      const data = await response.json();
+      if (response.status === 200) {
+        setWeather(data);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log('error:', error);
+    }
+  }, [city]);
+  useEffect(() => {
+    if (city) {
+      // console.log('City: ', city);
+      getWeatherByCity();
+    } else {
+      getCurrentLocation();
+    }
+  }, [city, getCurrentLocation, getWeatherByCity]);
   return (
     <div id="wrap" className="w-dvw h-dvh pt-20">
-      {console.log('render')}
-      <div className="container w-fit mx-auto p-8 rounded-2xl bg-slate-200/60 flex items-center flex-col gap-4 drop-shadow-2xl">
-        <WeatherBox weather={weather}></WeatherBox>
-        <div className="btn-box flex gap-4">
-          <WeatherBtn name="Current Location"></WeatherBtn>
-          <WeatherBtn name="Seoul"></WeatherBtn>
-          <WeatherBtn name="ToKyo"></WeatherBtn>
-          <WeatherBtn name="BangKok"></WeatherBtn>
-          <WeatherBtn name="Taipei"></WeatherBtn>
-        </div>
+      {/* {console.log('render')} */}
+      <div className="container w-4/5 max-w-fit mx-auto p-8 rounded-2xl bg-slate-200/60 flex items-center flex-col gap-4 drop-shadow-2xl">
+        {loading ? (
+          <ClipLoader color="#007ECD" loading={loading} size={148} aria-label="Loading Spinner" data-testid="loader" />
+        ) : (
+          <WeatherBox weather={weather}></WeatherBox>
+        )}
+        <WeatherBtn cities={cities} setCity={setCity} selectedCity={city}></WeatherBtn>
       </div>
     </div>
   );
