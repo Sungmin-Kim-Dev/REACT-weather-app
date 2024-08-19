@@ -49,7 +49,7 @@ function App() {
   }, [getWeatherByCurrentLocation]);
 
   const getWeatherByCity = useCallback(async () => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIkey}&units=metric`;
       const response = await fetch(url);
