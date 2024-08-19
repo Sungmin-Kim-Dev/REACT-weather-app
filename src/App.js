@@ -17,48 +17,53 @@ function App() {
   // let longitude = 0;
   const [weather, setWeather] = useState(null);
   const [city, setCity] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const cities = ['seoul', 'tokyo', 'bangkok', 'taipei', 'new york', 'buenos aires', 'paris', 'vancouver', 'london'];
+
+  const getWeatherByCurrentLocation = useCallback(async (lat, lon) => {
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}&units=metric`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (response.status === 200) {
+        setWeather(data);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.log('error:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const getCurrentLocation = useCallback(() => {
     // console.log('getCurrentLocation');
+    setLoading(true);
     navigator.geolocation.getCurrentPosition((position) => {
       let latitude = position.coords.latitude;
       let longitude = position.coords.longitude;
       // console.log(latitude, longitude);
       getWeatherByCurrentLocation(latitude, longitude);
     });
-  }, []);
-  const getWeatherByCurrentLocation = async (lat, lon) => {
-    try {
-      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${APIkey}&units=metric`;
-      setLoading(true);
-      const response = await fetch(url);
-      const data = await response.json();
-      if (response.status === 200) {
-        setWeather(data);
-        setLoading(false);
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (error) {
-      console.log('error:', error);
-    }
-  };
+  }, [getWeatherByCurrentLocation]);
+
   const getWeatherByCity = useCallback(async () => {
+    setLoading(true);
     try {
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${APIkey}&units=metric`;
-      setLoading(true);
       const response = await fetch(url);
       const data = await response.json();
       if (response.status === 200) {
         setWeather(data);
-        setLoading(false);
       }
     } catch (error) {
       console.log('error:', error);
+    } finally {
+      setLoading(false);
     }
   }, [city]);
+
   useEffect(() => {
     if (city) {
       // console.log('City: ', city);
